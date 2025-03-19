@@ -1,109 +1,113 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Linking,ActivityIndicator } from 'react-native';
+import { useFonts } from 'expo-font';
+import { Lobster_400Regular } from '@expo-google-fonts/lobster';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-
-export default function TabTwoScreen() {
+const AboutPage = () => {
+   const [fontsLoaded] = useFonts({
+  Lobster_400Regular
+    });
+  
+    if (!fontsLoaded) {
+      return <ActivityIndicator size="large" color="#0000ff" />;
+    }
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ScrollView style={styles.container}>
+
+      <View style={styles.section}>
+        <View>
+        <Text style={styles.header}>Project Overview</Text>
+        </View>
+        <Text style={styles.description}> 
+          The system allows you to manage your devices remotely using your phone or through voice commands, 
+          and automate common tasks to make your life easier.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.heading}>Features</Text>
+        <Text style={styles.description}>
+          - <Text style={styles.bold}>Bluetooth Control:</Text>
+          The system communicates with the Arduino via Bluetooth.
+        </Text>
+        <Text style={styles.description}>
+          - <Text style={styles.bold}>Voice Control:</Text> Voice commands are processed to control devices.
+        </Text>
+        <Text style={styles.description}>
+          - <Text style={styles.bold}>Automation:</Text> Automatically control devices based on specific conditions.
+        </Text>
+      </View>
+
+
+
+      <View style={styles.section}>
+        <Text style={styles.heading}>How It Works</Text>
+        <Text style={styles.description}>
+          The app connects to your Arduino device via Bluetooth. Once connected, you can control various device.
+          You can also use voice commands to control these devices or 
+          set up automation tasks for convenience.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.heading}>Visit Our Project</Text>
+        <Text
+          style={styles.link}
+          onPress={() => Linking.openURL('https://github.com/NikitaMulam2005/Arduino-Car-Application')}
+        >
+          Visit GitHub 
+        </Text>
+      </View>
+    </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 30,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  section: {
+    marginBottom: 20,
+  },
+  header:{
+    fontSize: 30,
+    textAlign:'center',
+    textDecorationLine:'underline',
+    fontFamily:'Lobster_400Regular',
+    color: 'rgb(50, 85, 131)', // Deep blue color for headings
+    margin: 20,
+  },
+  heading: {
+    fontSize: 24,
+    fontFamily:'Lobster_400Regular',
+    color: 'rgb(50, 85, 131)', // Deep blue color for headings
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: 'rgb(60, 60, 60)', // Grayish color for regular text
+  },
+  bold: {
+    fontWeight: '700',
+
+  },
+  projectImage: {
+    width: '100%',
+    height: 250,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  link: {
+    fontSize: 16,
+    color: 'rgb(123, 163, 216)', // Soft blue color for links
+    textDecorationLine: 'underline',
+    fontWeight: 'bold',
+    marginBottom:40
   },
 });
+
+export default AboutPage;

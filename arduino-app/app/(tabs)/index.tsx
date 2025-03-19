@@ -2,11 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image,ActivityIndicator} from 'react-native';
 import { useFonts } from 'expo-font';
 import { Lobster_400Regular } from '@expo-google-fonts/lobster';
+import { useRouter } from 'expo-router';
 
 const ControlScreen = ()=> {
   const [fontsLoaded] = useFonts({
 Lobster_400Regular
   });
+  const router = useRouter();
+  const navigateToLanding = () => {
+    router.push('/landing'); // Navigate to the landing page when button is pressed
+  };
+
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -16,7 +22,7 @@ Lobster_400Regular
       <Text style={styles.header}>Make Your Life Simpler With Our Automation Control</Text>
       <Image source={require('../../assets/images/car.png')} style={styles.icon}  resizeMode="contain" />
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <TouchableOpacity style={styles.button} onPress={() => console.log("Button Pressed!")}>
+      <TouchableOpacity style={styles.button} onPress={navigateToLanding}>
       <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
       <Text style={styles.account}>Already have an account ? <Text style={{color:'rgb(123, 163, 216)'}}>Sign In</Text></Text>

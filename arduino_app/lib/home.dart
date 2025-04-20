@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/landing');
+                      Navigator.pushNamed(context, '/signup');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(50, 85, 131, 1),

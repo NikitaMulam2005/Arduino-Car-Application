@@ -23,7 +23,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account created! Please log in.")),
       );
-      Navigator.pop(context); // Go back to login page
+      Navigator.pushReplacementNamed(context, '/login'); // Go back to login page
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Sign up failed")),

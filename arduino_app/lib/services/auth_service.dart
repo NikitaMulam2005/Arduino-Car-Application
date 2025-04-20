@@ -27,7 +27,7 @@ Future<bool> signup(String email, String password) async {
     body: jsonEncode({'email': email, 'password': password}),
   );
 
-  if (response.statusCode == 201) {
+  if (response.statusCode == 200) {
     return true;
   } else {
     print('Signup failed: ${response.body}');

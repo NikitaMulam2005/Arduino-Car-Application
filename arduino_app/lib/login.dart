@@ -22,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text("Logged in!")),
       );
       // Navigate to home or dashboard
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/landing');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login failed")),

@@ -1,107 +1,86 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class BluetoothCarController extends StatefulWidget {
-  const BluetoothCarController({super.key});
+class HC05CarController extends StatefulWidget {
+  const HC05CarController({super.key});
 
   @override
-  State<BluetoothCarController> createState() => _BluetoothCarControllerState();
+  State<HC05CarController> createState() => _HC05CarControllerState();
 }
 
-class _BluetoothCarControllerState extends State<BluetoothCarController> {
-  BluetoothDevice? connectedDevice;
-  BluetoothCharacteristic? characteristic;
+class _HC05CarControllerState extends State<HC05CarController> {
+  BluetoothConnection? connection;
   bool isConnected = false;
+  BluetoothDevice? device;
+  bool isConnecting = false;
 
   @override
   void initState() {
     super.initState();
-    requestPermissions();
+    requestPermissionsAndInit();
   }
 
-  Future<void> requestPermissions() async {
+  Future<void> requestPermissionsAndInit() async {
     await [
       Permission.bluetooth,
-      Permission.bluetoothScan,
       Permission.bluetoothConnect,
-      Permission.locationWhenInUse,
+      Permission.bluetoothScan,
+      Permission.location,
     ].request();
+
+    await FlutterBluetoothSerial.instance.requestEnable();
   }
 
-  void startScan() async {
-    await requestPermissions();
-    final isOn = await FlutterBluePlus.adapterState.first == BluetoothAdapterState.on;
-    if (!isOn) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please turn on Bluetooth")),
-      );
-      return;
-    }
-    FlutterBluePlus.startScan(timeout: const Duration(seconds: 4));
+  Future<void> startScanAndConnect() async {
+    setState(() => isConnecting = true);
 
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => StreamBuilder<List<ScanResult>>(
-        stream: FlutterBluePlus.scanResults,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No devices found"));
-          }
-          return ListView(
-            children: snapshot.data!.map((result) {
-              final name = result.device.platformName.isEmpty
-                  ? "Unknown Device"
-                  : result.device.platformName;
-              return ListTile(
-                title: Text(name),
-                subtitle: Text(result.device.remoteId.toString()),
-                onTap: () {
-                  connectToDevice(result.device);
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          );
-        },
-      ),
-    );
-  }
-
-  void connectToDevice(BluetoothDevice device) async {
     try {
-      await device.connect();
-      List<BluetoothService> services = await device.discoverServices();
+      final bondedDevices = await FlutterBluetoothSerial.instance.getBondedDevices();
 
-      for (var service in services) {
-        for (var char in service.characteristics) {
-          if (char.properties.write) {
-            characteristic = char;
-            break;
-          }
-        }
+      if (bondedDevices.isEmpty) {
+        throw Exception("No bonded devices found");
       }
 
-      if (!mounted) return;
+      final hc05 = bondedDevices.firstWhere(
+        (d) => d.name?.toUpperCase().contains('HC') ?? false,
+        orElse: () => bondedDevices.first,
+      );
+
+      final conn = await BluetoothConnection.toAddress(hc05.address);
       setState(() {
-        connectedDevice = device;
+        connection = conn;
         isConnected = true;
+        device = hc05;
+        isConnecting = false;
       });
 
-      FlutterBluePlus.stopScan();
-    } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Connection failed: $e")),
+        SnackBar(content: Text('Connected to ${hc05.name}')),
       );
+    } catch (e) {
+      setState(() => isConnecting = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Connection failed: $e')),
+        );
+      }
     }
   }
 
-  void sendCommand(String command) async {
-    if (characteristic != null) {
-      await characteristic!.write(command.codeUnits);
+  void sendCommand(String command) {
+    if (connection != null && isConnected) {
+      connection!.output.add(Uint8List.fromList(command.codeUnits));
     }
+  }
+
+  void disconnect() {
+    connection?.dispose();
+    setState(() {
+      isConnected = false;
+      device = null;
+    });
   }
 
   @override
@@ -116,20 +95,10 @@ class _BluetoothCarControllerState extends State<BluetoothCarController> {
               children: [
                 const Text(
                   "Smart Bluetooth Car Key",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 5),
-                const Text(
-                  "Control at your fingertips",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
+                const Text("Control at your fingertips", style: TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 20),
 
                 // Keyring
@@ -144,10 +113,7 @@ class _BluetoothCarControllerState extends State<BluetoothCarController> {
                     child: Container(
                       width: 15,
                       height: 15,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
                     ),
                   ),
                 ),
@@ -165,19 +131,20 @@ class _BluetoothCarControllerState extends State<BluetoothCarController> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Bluetooth button
-                      GestureDetector(
-                        onTap: startScan,
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isConnected ? Colors.green : Colors.grey,
-                          ),
-                          child: const Icon(Icons.bluetooth, color: Colors.white, size: 20),
-                        ),
-                      ),
+                      isConnecting
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : GestureDetector(
+                              onTap: isConnected ? disconnect : startScanAndConnect,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isConnected ? Colors.green : Colors.grey,
+                                ),
+                                child: const Icon(Icons.bluetooth, color: Colors.white, size: 20),
+                              ),
+                            ),
                       const SizedBox(height: 20),
                       controlButton(Icons.arrow_upward, "F"),
                       const SizedBox(height: 10),
@@ -187,16 +154,10 @@ class _BluetoothCarControllerState extends State<BluetoothCarController> {
                       const SizedBox(height: 10),
                       controlButton(Icons.arrow_forward, "R"),
                       const SizedBox(height: 10),
+
+                      // Power off button
                       GestureDetector(
-                        onTap: () {
-                          if (connectedDevice != null) {
-                            connectedDevice!.disconnect();
-                            setState(() {
-                              connectedDevice = null;
-                              isConnected = false;
-                            });
-                          }
-                        },
+                        onTap: disconnect,
                         child: Container(
                           width: 60,
                           height: 60,
@@ -228,18 +189,20 @@ class _BluetoothCarControllerState extends State<BluetoothCarController> {
     );
   }
 
-  Widget controlButton(IconData icon, String command) {
-    return GestureDetector(
-      onTap: () => sendCommand(command),
-      child: Container(
-        width: 80,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 30, color: Colors.black),
+ Widget controlButton(IconData icon, String command) {
+  return GestureDetector(
+    onTapDown: (_) => sendCommand(command),
+    onTapUp: (_) => sendCommand("S"),
+    onTapCancel: () => sendCommand("S"),
+    child: Container(
+      width: 80,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
       ),
-    );
-  }
+      child: Icon(icon, size: 30, color: Colors.black),
+    ),
+  );
+}
 }

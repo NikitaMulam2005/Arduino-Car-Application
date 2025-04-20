@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/gestures.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final TapGestureRecognizer tapRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        Navigator.pushNamed(context, '/login');
+      };
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -49,7 +55,9 @@ class HomeScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(50, 85, 131, 1),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 12),
+                        horizontal: 32,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -67,25 +75,23 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                      ),
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 15, color: Colors.black),
                       children: [
-                        TextSpan(text: 'Already have an account ? '),
+                        const TextSpan(text: 'Already have an account ? '),
                         TextSpan(
                           text: 'Sign In',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color.fromRGBO(123, 163, 216, 1),
                           ),
+                          recognizer: tapRecognizer,
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
